@@ -4,6 +4,7 @@ from scrapy.utils.log import configure_logging
 from multiprocessing import Process, Queue
 from twisted.internet import reactor
 import logging
+import os
 
 class WebsiteSpider(scrapy.Spider):
     name = 'website_spider'
@@ -47,6 +48,10 @@ def run_spider_process(urls, q):
         q.put(e)
 
 def run_spider(urls):
+    # Ensure the file is deleted before running the spider
+    if os.path.exists('user_kb/extracted_links.json'):
+        os.remove('user_kb/extracted_links.json')
+
     q = Queue()
     p = Process(target=run_spider_process, args=(urls, q))
     p.start()
