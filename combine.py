@@ -1,10 +1,6 @@
 import json
-from nodes.pdf import extract_and_chunk_pdfs
-from nodes.link import extract_and_chunk_links
-
-pdf_folder_path = "user_kb/pdfs"
-links_file_path = "user_kb\links.json"
-extracted_links_file_path = "user_kb\extracted_links.json"
+from nodes.pdf_node import extract_and_chunk_pdfs
+from nodes.link_node import extract_and_chunk_links
 
 # Function to combine PDF and Link data and save to JSON
 def save_to_json(pdf_folder_path: str, 
