@@ -9,7 +9,7 @@ class WebsiteSpider(scrapy.Spider):
     name = 'website_spider'
     custom_settings = {
         'FEEDS': {
-            'scraped_data.json': {
+            'user_kb/extracted_links.json': {
                 'format': 'json',
                 'encoding': 'utf8',
                 'store_empty': False,
@@ -26,8 +26,11 @@ class WebsiteSpider(scrapy.Spider):
     def parse(self, response):
         content = ' '.join([p.get() for p in response.css('p::text')])
         yield {
-            'url': response.url,
-            'content': content
+            'content': content,
+            'metadata': {
+                'source': 'Link',
+                'identifier': response.url
+            }
         }
 
 def run_spider_process(urls, q):

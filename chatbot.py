@@ -1,19 +1,19 @@
 # Import libraries
 from nodes.pdf_node import create_vectordb, read_pdf_files_from_folder
-from src.chatbot_setup import system_prompt
+from helpers.system_prompts import system_prompt_pdf
 from openai import OpenAI
 import json # for readability of the chat history
+from helpers.support_functions import read_api_key
 
 # Read openai key
-with open(r'src\GPT_api_key.txt') as f:
-    openai_api_key = f.read()
+openai_api_key = read_api_key('openai')
 
 # Function for chatbot
 def conversation():
     user_query = ""  # Initialize x with an empty string
     chat_history = [] # Define chat history
 
-    data_folder = "data"  # Path to the folder where PDFs are stored.
+    data_folder = "user_kb/pdfs"  # Path to the folder where PDFs are stored.
     pdf_files, pdf_names = read_pdf_files_from_folder(data_folder)
 
     # create vector database and index
@@ -33,7 +33,7 @@ def conversation():
             pdf_extract = docs
 
             #initialize system prompt to be added to the model
-            system = {"role": "system", "content": system_prompt.format(pdf_extract=pdf_extract)}
+            system = {"role": "system", "content": system_prompt_pdf.format(pdf_extract=pdf_extract)}
 
             # add in user_query to chat history 
             chat_history.append({"role": "user", "content": user_query})
