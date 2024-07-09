@@ -8,18 +8,7 @@ def read_links_from_json(file_path: str):
     
 def chunk_clean_links(file_path: str):
     with open(file_path, 'r', encoding='utf-8') as file:
-        data = file.read()
-
-    # Check if the string contains multiple lists
-    if '][' in data:
-        # Correct the format by adding commas between the lists
-        data = data.replace('][', '],[')
-        # Wrap the entire string in square brackets to form a valid JSON array
-        data = f'[{data}]'
-        # Load the corrected JSON string
-        data = json.loads(data)[-1]
-    else:
-        data = json.loads(data)
+        data = json.load(file)
 
     nlp = spacy.load('en_core_web_sm')
 
@@ -29,7 +18,7 @@ def chunk_clean_links(file_path: str):
         tokens = [token.lemma_ for token in doc if not token.is_stop and not token.is_punct]
         return ' '.join(tokens)
 
-    def chunk_text(text, chunk_size=150, overlap=30):
+    def chunk_text(text, chunk_size=200, overlap=30):
         words = text.split()
         chunks = []
         for i in range(0, len(words), chunk_size - overlap):

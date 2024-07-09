@@ -29,7 +29,7 @@ def parse_pdf(file: BytesIO, filename: str) -> List[dict]:
     return docs
 
 # Function to chunk text
-def chunk_text(text: str, chunk_size: int = 150, overlap: int = 30) -> List[str]:
+def chunk_text(text: str, chunk_size: int = 200, overlap: int = 30) -> List[str]:
     words = text.split()
     chunks = []
     for i in range(0, len(words), chunk_size - overlap):
