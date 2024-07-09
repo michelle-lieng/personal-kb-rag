@@ -1,4 +1,12 @@
+# Ignore API keys
 helpers/api_keys.json
+
+# Ignore the extracted data and indexed files
+user_kb/combined_data.json
+user_kb/extracted_links.json
+user_kb/extracted_pdfs.json
+faiss_index.bin
+metadata.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
