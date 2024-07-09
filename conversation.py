@@ -27,8 +27,8 @@ system_prompt_universal = """
     You are a helpful assistant who answers users' questions based on multiple contexts given to you.
     Keep your answers short and to the point.
     The evidence provided is the context of the extracts from various sources with metadata.
-    Carefully focus on the metadata, especially 'identifier' and 'location' whenever answering.
-    Make sure to add the identifier (filename/URL) and location (page/chunk) at the end of the sentence you are citing.
+    Carefully focus on the metadata, especially 'source', 'identifier', and 'location' whenever answering.
+    Make sure to add the source (PDF/Link), identifier (filename/URL), and location (page/chunk) at the end of the sentence you are citing.
     Reply "Not applicable" if the text is irrelevant.
     The content provided is:
     {extract}
@@ -55,8 +55,11 @@ def conversation():
             docs = similarity_search(user_query, model, index, metadata, top_k=3)
 
             # Format the document chunks for the system prompt
-            extract = "\n\n".join([f"Identifier: {doc['metadata']['identifier']} - {doc['metadata']['location']}\n\n{doc['content']}" for doc in docs])
-
+            extract = "\n\n".join([
+                    f"Source: {doc['metadata']['source']} - Identifier: {doc['metadata']['identifier']} - {doc['metadata']['location']}\n\n{doc['content']}"
+                    for doc in docs
+                ])
+            
             # Initialize system prompt to be added to the model
             system = {"role": "system", "content": system_prompt_universal.format(extract=extract)}
 
@@ -81,7 +84,7 @@ def conversation():
             print("This is the pdf extracts: ")
             print("-------------------------")
             for line in docs:
-                print(f"Identifier: {line['metadata']['identifier']} - {line['metadata']['location']}\n{line['content']}\n")
+                print(f"Source: {line['metadata']['source']} - Identifier: {line['metadata']['identifier']} - {line['metadata']['location']}\n{line['content']}\n")
             print("This is the chatbot response: ")
             print("-----------------------------")
             print(chatbot_response)
