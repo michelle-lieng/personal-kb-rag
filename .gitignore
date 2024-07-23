@@ -7,6 +7,9 @@ user_kb/extracted_links.json
 user_kb/extracted_pdfs.json
 faiss_index.bin
 metadata.json
+user_kb/bookmarked_links.json
+user_kb/extracted_bookmarks.json
+user_kb/extracted_notion.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
