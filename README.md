@@ -1,5 +1,14 @@
 # personal-kb-rag
 
-this is where you can upload your own pdfs, can connect to your own drives, google bookmarks, notions, own list of links and then you can query all this information
+This is a RAG chatbot that can query from multiple personal sources of data including:
+- Google bookmarks
+- Notion pages
+- PDFs
+- List of links
 
-currently doing pdf node - however problems with follow up questions + page numbers
+Future features in consideration include:
+- Google drives
+
+Limitations:
+- Doesn't work with follow up questions as of yet
+- PDF page numbers don't correctly align with written page numbers
