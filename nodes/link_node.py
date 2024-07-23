@@ -1,12 +1,14 @@
 import json
 from helpers.web_crawler import run_spider
 import spacy
+import logging
+import os
 
 def read_links_from_json(file_path: str):
     with open(file_path, "r") as file:
         return json.load(file)
-    
-def chunk_clean_links(file_path: str):
+
+def chunk_clean_links(file_path: str, source_metadata: str):
     with open(file_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
@@ -30,29 +32,39 @@ def chunk_clean_links(file_path: str):
         clean_content = clean_text(entry['content'])
         chunks = chunk_text(clean_content)
         for i, chunk in enumerate(chunks):
-            all_chunks.append({
+            chunk_data = {
                 "content": chunk,
                 "metadata": {
-                    "source": entry['metadata']['source'],
+                    "source": source_metadata,
                     "identifier": entry['metadata']['identifier'],
                     "location": f"Chunk {i + 1}"
                 }
-            })
+            }
+            logging.warning(f"Adding chunk: {chunk_data}")
+            all_chunks.append(chunk_data)
 
     return all_chunks
 
-def extract_and_chunk_links(links_file_path: str, extracted_links_file_path: str):
-    # get the urls used for scraping
+def extract_and_chunk_links(links_file_path: str, extracted_links_file_path: str, source_metadata: str):
+    # Get the URLs used for scraping
     urls_list = read_links_from_json(links_file_path)
 
-    # run spider to scrape the urls
-    run_spider(urls_list)
+    # Run spider to scrape the URLs
+    run_spider(urls_list, source_metadata, extracted_links_file_path)
 
-    # chunk and clean the extracted data from links
-    return chunk_clean_links(extracted_links_file_path)
+    # Chunk and clean the extracted data from links
+    chunked_links_data = chunk_clean_links(extracted_links_file_path, source_metadata)
+
+    # Output result to file for inspection [optional]
+    with open(extracted_links_file_path, "w", encoding="utf-8") as f:
+        json.dump(chunked_links_data, f, ensure_ascii=False, indent=4)
+
+    return chunked_links_data
 
 # Example usage
 if __name__ == "__main__":
+    source_metadata = "Link"
     links_file_path = "user_kb\links.json"
     extracted_links_file_path = "user_kb\extracted_links.json"
-    print(extract_and_chunk_links(links_file_path, extracted_links_file_path))
+
+    extract_and_chunk_links(links_file_path, extracted_links_file_path, source_metadata)
