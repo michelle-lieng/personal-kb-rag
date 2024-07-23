@@ -8,52 +8,78 @@ import os
 
 class WebsiteSpider(scrapy.Spider):
     name = 'website_spider'
-    custom_settings = {
-        'FEEDS': {
-            'user_kb/extracted_links.json': {
-                'format': 'json',
-                'encoding': 'utf8',
-                'store_empty': False,
-                'fields': None,
-                'indent': 4,
-            },
-        }
-    }
 
-    def __init__(self, urls, *args, **kwargs):
+    def __init__(self, urls, source_metadata, output_path, *args, **kwargs):
         super(WebsiteSpider, self).__init__(*args, **kwargs)
         self.start_urls = urls
+        self.source_metadata = source_metadata
+
+        # Debugging to ensure the settings are being applied
+        logging.warning(f"Setting custom FEEDS path to {output_path}")
+
+        self.custom_settings = {
+            'FEEDS': {
+                output_path: {
+                    'format': 'json',
+                    'encoding': 'utf8',
+                    'store_empty': False,
+                    'fields': None,
+                    'indent': 4,
+                },
+            }
+        }
 
     def parse(self, response):
         content = ' '.join([p.get() for p in response.css('p::text')])
         yield {
             'content': content,
             'metadata': {
-                'source': 'Link',
+                'source': self.source_metadata,
                 'identifier': response.url
             }
         }
 
-def run_spider_process(urls, q):
+def run_spider_process(urls, q, source_metadata, output_path):
     try:
         settings = {
-            'REQUEST_FINGERPRINTER_IMPLEMENTATION': '2.7'
+            'REQUEST_FINGERPRINTER_IMPLEMENTATION': '2.7',
+            'FEEDS': {
+                output_path: {
+                    'format': 'json',
+                    'encoding': 'utf8',
+                    'store_empty': False,
+                    'fields': None,
+                    'indent': 4,
+                },
+            }
         }
+
+        # Debugging to ensure the settings are being applied
+        logging.warning(f"Applying FEEDS path to {output_path}")
+
         runner = crawler.CrawlerRunner(settings)
-        deferred = runner.crawl(WebsiteSpider, urls=urls)
+        deferred = runner.crawl(WebsiteSpider, urls=urls, source_metadata=source_metadata, output_path=output_path)
         deferred.addBoth(lambda _: reactor.stop())
         reactor.run()
         q.put(None)
     except Exception as e:
         q.put(e)
 
-def run_spider(urls):
-    # Ensure the file is deleted before running the spider
-    if os.path.exists('user_kb/extracted_links.json'):
-        os.remove('user_kb/extracted_links.json')
+def run_spider(urls, source_metadata, output_path):
+    # Ensure the output file is wiped before running the spider
+    if os.path.exists(output_path):
+        open(output_path, 'w').close()
+
+    # Debugging to ensure the directory exists
+    output_dir = os.path.dirname(output_path)
+    if not os.path.exists(output_dir):
+        logging.warning(f"Creating directory {output_dir}")
+        os.makedirs(output_dir)
+    else:
+        logging.warning(f"Directory {output_dir} already exists")
 
     q = Queue()
-    p = Process(target=run_spider_process, args=(urls, q))
+    p = Process(target=run_spider_process, args=(urls, q, source_metadata, output_path))
     p.start()
     result = q.get()
     p.join()
@@ -70,18 +96,15 @@ logging.basicConfig(
     format='%(levelname)s: %(message)s',
     level=logging.WARNING
 )
-"""
-# Example usage
 
-# First run
-urls_list1 = ['https://www.agriculture.gov.au/abares/products/insights/climate-change-impacts-and-adaptation', 'https://www.climatechange.environment.nsw.gov.au/impacts-climate-change/agriculture', 'https://qaafi.uq.edu.au/blog/2021/09/australian-agriculture-and-climate-change-two-way-street', 'https://www.epa.gov/climateimpacts/climate-change-impacts-agriculture-and-food-supply', 'https://www.science.org.au/curious/policy-features/australian-agriculture-and-climate-change-two-way-street', 'https://en.wikipedia.org/wiki/Effects_of_climate_change_on_agriculture', 'https://www.climatechangeauthority.gov.au/sites/default/files/2021-03/2021Factsheet%20-%20Agriculture.pdf', 'https://www.nature.com/articles/s41558-021-01017-6', 'https://www.nature.com/articles/s43016-021-00400-y']
-print('first run:')
-run_spider(urls_list1)
+if __name__ == "__main__":
+    source_metadata = "Link"
+    urls = ["https://python.langchain.com/v0.1/docs/modules/model_io/prompts/quick_start/",
+    "https://www.theverge.com/2024/5/30/24167986/perplexity-ai-research-pages-school-report",
+    "https://a16z.com/owning-the-workflow-in-b2b-ai-apps/"]
+    output_path = os.path.join("user_kb", "extracted_links.json")
 
-# You can perform other operations here if needed
+    # Debugging to confirm the final output path
+    logging.warning(f"Final output path: {output_path}")
 
-# Second run
-urls_list2 = ['https://www.agriculture.gov.au/abares/products/insights/climate-change-impacts-and-adaptation', 'https://www.climatechange.environment.nsw.gov.au/impacts-climate-change/agriculture', 'https://qaafi.uq.edu.au/blog/2021/09/australian-agriculture-and-climate-change-two-way-street', 'https://www.epa.gov/climateimpacts/climate-change-impacts-agriculture-and-food-supply', 'https://www.science.org.au/curious/policy-features/australian-agriculture-and-climate-change-two-way-street', 'https://en.wikipedia.org/wiki/Effects_of_climate_change_on_agriculture']
-print('\nsecond run:')
-run_spider(urls_list2)
-"""
+    run_spider(urls, source_metadata, output_path)
